@@ -32,6 +32,14 @@ describe('parseTags', () => {
   it('filters empty strings', () => {
     expect(parseTags(',,')).toEqual([]);
   });
+
+  it('returns empty array for empty string', () => {
+    expect(parseTags('')).toEqual([]);
+  });
+
+  it('returns empty array for empty array', () => {
+    expect(parseTags([])).toEqual([]);
+  });
 });
 
 describe('tagCommand', () => {
@@ -62,6 +70,16 @@ describe('tagCommand', () => {
     await tagCommand('abc123', { remove: ['news'] });
     expect(entry.tags).not.toContain('news');
     expect(entry.tags).toContain('tech');
+  });
+
+  it('does not save when removing a tag not present on entry', async () => {
+    const entry = mockEntry();
+    storage.loadQueue.mockResolvedValue([entry]);
+    storage.saveQueue.mockResolvedValue();
+    vi.spyOn(console, 'log').mockImplementation(() => {});
+    await tagCommand('abc123', { remove: ['nonexistent'] });
+    expect(entry.tags).toEqual(['news', 'tech']);
+    expect(storage.saveQueue).not.toHaveBeenCalled();
   });
 
   it('exits with error for unknown id', async () => {
